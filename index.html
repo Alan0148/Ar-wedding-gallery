@@ -17,7 +17,7 @@ html{scroll-behavior:smooth}
 body{margin:0;background:var(--fondo);color:var(--verde);font-family:"Montserrat",system-ui,sans-serif;font-weight:300}
 button{font:inherit}
 button:focus-visible,a:focus-visible{outline:2px solid var(--oro);outline-offset:3px}
-a{color:var(--verde);text-decoration:none}
+a{color:var(--verde)}
 .script{font-family:"Great Vibes","Brush Script MT",cursive;font-weight:400;margin:0}
 .serif{font-family:"Playfair Display",Georgia,serif;font-weight:400}
 .sans{font-family:"Montserrat",system-ui,sans-serif}
@@ -32,21 +32,28 @@ h2.script{font-size:clamp(38px,10vw,52px);line-height:1.15}
 .gold-line.small{width:64px;margin:18px auto}
 .texto{font-size:16px;line-height:1.75;margin:0 0 26px}
 .tarjeta{background:rgba(255,255,255,.9);border-radius:24px;padding:42px 28px;box-shadow:0 20px 40px -12px rgba(31,61,58,.18);backdrop-filter:blur(6px)}
-.botones{display:flex;justify-content:center;align-items:center;margin:0 auto}
-.btn{display:inline-flex;align-items:center;justify-content:center;min-height:54px;padding:14px 28px;border:1px solid var(--verde);border-radius:999px;background:var(--verde);color:#fff;font:400 13px "Montserrat",sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:background .25s,color .25s;text-align:center}
-.btn:hover{background:#2d544f}
-.ayuda{font-size:12px;line-height:1.7;color:var(--verde-suave);margin:22px 0 0}
+.botones{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:12px 24px;border:1px solid var(--verde);border-radius:999px;background:transparent;color:var(--verde);font:400 12px "Montserrat",sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:background .25s,color .25s}
+.btn:hover{background:var(--verde);color:#fff}
+.btn.lleno{background:var(--verde);color:#fff}
+.btn.lleno:hover{background:#2d544f}
+.previsualizaciones{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:20px}
+.miniatura{position:relative;border-radius:12px;overflow:hidden;background:#e9e4d8;aspect-ratio:1}
+.miniatura img{display:block;width:100%;height:100%;object-fit:cover}
+.quitar{position:absolute;top:5px;right:5px;width:26px;height:26px;border:0;border-radius:50%;background:#fff;color:var(--verde);cursor:pointer;font-weight:bold}
+.contador{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--verde-suave);margin:14px 0}
+.estado{font-size:15px;line-height:1.6;margin:16px 0 0}
+.estado.error{color:#a13931}.estado.ok{color:#2f6b4f}
+.ayuda{font-size:11px;line-height:1.7;color:var(--verde-suave);margin:18px 0 0}
 .pie{padding:44px 20px 52px;text-align:center}
 .pie .script{font-size:34px}
 .pie .sans{font-size:11px;letter-spacing:.25em;margin:8px 0 0}
-.js .fade-in-section{opacity:0;transform:translateY(16px);transition:opacity .9s ease,transform .9s ease}
-.js .fade-in-section.visible{opacity:1;transform:none}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}.js .fade-in-section{opacity:1;transform:none}}
+@media(max-width:560px){.botones{flex-direction:column}}
 </style>
 </head>
 <body>
 <main>
-  <div class="seccion fade-in-section">
+  <div class="seccion">
     <div class="gold-line"></div>
     <h1 class="script">Alan & Rachel</h1>
     <div class="gold-line"></div>
@@ -54,17 +61,31 @@ h2.script{font-size:clamp(38px,10vw,52px);line-height:1.15}
     <p class="sans uppercase fecha">24 de octubre de 2026</p>
   </div>
 
-  <section class="seccion fade-in-section" aria-labelledby="titulo-subida">
+  <section class="seccion" aria-labelledby="titulo-subida">
     <div class="tarjeta">
       <h2 id="titulo-subida" class="script">Comparte tu recuerdo</h2>
       <div class="gold-line small"></div>
-      <p class="serif texto">Cada fotografía es una página de una biblioteca que escribimos entre todos, porque nadie recuerda lo mismo. Que tu página de hoy no falte: sube tus fotos.</p>
+      <p class="serif texto">Elige las fotografías que tomaste hoy desde tu dispositivo. ¡Nos encantará ver cada momento!</p>
       
-      <div class="botones">
-        <a class="btn" href="https://photos.app.goo.gl/xYfQyRJ77LeDdAVbA" target="_blank" rel="noopener noreferrer">Abrir álbum y subir fotos</a>
-      </div>
+      <form id="upload-form">
+        <input type="hidden" name="access_key" value="41e4b4e6-3703-4228-98e1-93e4dd4668db">
+        <input type="hidden" name="subject" value="Nuevas fotografías compartidas para la boda de Alan y Rachel">
+        <input type="hidden" name="from_name" value="Galería de Boda - Alan & Rachel">
+        
+        <div class="botones">
+          <button class="btn" id="elegir" type="button">Elegir fotografías</button>
+        </div>
+        
+        <input id="archivos" type="file" accept="image/*" multiple hidden>
+        
+        <div id="previsualizaciones" class="previsualizaciones"></div>
+        <p id="contador" class="sans contador"></p>
+        
+        <button id="subir" class="btn lleno" style="width:100%;margin-top:15px;" type="submit" hidden>Enviar fotografías a los novios</button>
+      </form>
 
-      <p class="sans ayuda">Se abrirá Google Fotos en tu navegador o aplicación para que agregues tus imágenes de forma rápida y sencilla.</p>
+      <p id="estado" class="serif estado" role="status"></p>
+      <p class="sans ayuda">Máximo 10 fotografías por envío.</p>
     </div>
   </section>
 </main>
@@ -76,12 +97,77 @@ h2.script{font-size:clamp(38px,10vw,52px);line-height:1.15}
 
 <script>
 (() => {
-  const els = document.querySelectorAll(".fade-in-section");
-  if (!("IntersectionObserver" in window)) { els.forEach((e) => e.classList.add("visible")); return; }
-  const io = new IntersectionObserver((entries) => entries.forEach((en) => {
-    if (en.isIntersecting) { en.target.classList.add("visible"); io.unobserve(en.target); }
-  }), { threshold: 0.12 });
-  els.forEach((e) => io.observe(e));
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  let selectedFiles = [];
+
+  const pickBtn = $("elegir"), fileInput = $("archivos"), prev = $("previsualizaciones");
+  const count = $("contador"), sendBtn = $("subir"), statusEl = $("estado"), form = $("upload-form");
+
+  pickBtn.addEventListener("click", () => fileInput.click());
+
+  fileInput.addEventListener("change", (e) => {
+    const files = Array.from(e.target.files);
+    for (const f of files) {
+      if (!f.type.startsWith("image/")) continue;
+      if (selectedFiles.length >= 10) break;
+      selectedFiles.push(f);
+    }
+    fileInput.value = "";
+    render();
+  });
+
+  function render() {
+    prev.replaceChildren();
+    selectedFiles.forEach((file, index) => {
+      const d = document.createElement("div"); d.className = "miniatura";
+      const im = document.createElement("img"); im.src = URL.createObjectURL(file);
+      const x = document.createElement("button"); x.type = "button"; x.className = "quitar"; x.textContent = "×";
+      x.addEventListener("click", () => {
+        selectedFiles.splice(index, 1);
+        render();
+      });
+      d.append(im, x); prev.append(d);
+    });
+    count.textContent = selectedFiles.length ? `${selectedFiles.length} fotografía(s) seleccionada(s)` : "";
+    sendBtn.hidden = !selectedFiles.length;
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!selectedFiles.length) return;
+
+    sendBtn.disabled = true;
+    statusEl.textContent = "Enviando fotografías, por favor espera...";
+    statusEl.className = "serif estado";
+
+    const formData = new FormData(form);
+    selectedFiles.forEach(file => {
+      formData.append("attachment", file);
+    });
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        statusEl.textContent = "¡Muchas gracias! Tus fotografías se han enviado con éxito.";
+        statusEl.className = "serif estado ok";
+        selectedFiles = [];
+        render();
+      } else {
+        throw new Error(data.message || "Ocurrió un error al enviar.");
+      }
+    } catch (err) {
+      statusEl.textContent = "No se pudieron enviar las fotos. Inténtalo de nuevo.";
+      statusEl.className = "serif estado error";
+    } finally {
+      sendBtn.disabled = false;
+    }
+  });
 })();
 </script>
 </body>
