@@ -66,7 +66,7 @@ h2.script{font-size:clamp(38px,10vw,52px);line-height:1.15}
     <div class="tarjeta">
       <h2 id="titulo-subida" class="script">Comparte tu recuerdo</h2>
       <div class="gold-line small"></div>
-      <p class="serif texto">Cada fotografía es una página de una biblioteca que escribimos entre todos, porque nadie recuerda lo mismo. Que tu página de hoy no falte: sube tus fotos al álbum compartido.</p>
+      <p class="serif texto">Elige las fotografías que tomaste hoy desde tu dispositivo. ¡Nos encantará ver cada momento!</p>
       
       <div class="botones">
         <button class="btn" id="elegir" type="button">Elegir fotografías</button>
@@ -94,7 +94,7 @@ h2.script{font-size:clamp(38px,10vw,52px);line-height:1.15}
 (() => {
   "use strict";
 
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLfmIpSnGbnfV-VQuz94kEqQ3E4T2NyQQ9elWzZAWrrtEGooMy0cjqyFte80TFg8XP/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzu9DMEdsVETk7GBDmkcuF5R7H4AFIJ4bzx0R6K3hdRZ5gIAaaPVF9pabOKp3NO3-wJ/exec";
 
   const $ = (id) => document.getElementById(id);
   let selectedFiles = [];
@@ -165,22 +165,20 @@ h2.script{font-size:clamp(38px,10vw,52px);line-height:1.15}
           mimeType: file.type || "image/jpeg"
         };
 
-        const response = await fetch(SCRIPT_URL, {
+        await fetch(SCRIPT_URL, {
           method: "POST",
+          mode: "no-cors",
           body: JSON.stringify(payload)
         });
         
-        const resData = await response.json();
-        if (resData.status === "success") {
-          successCount++;
-        }
+        successCount++;
       } catch (err) {
         console.error(err);
       }
     }
 
     if (successCount > 0) {
-      statusEl.textContent = `¡Muchas gracias! Se han subido ${successCount} fotografía(s) a nuestra carpeta.`;
+      statusEl.textContent = `¡Muchas gracias! Se han subido ${successCount} fotografía(s) a nuestra carpeta de Google Drive.`;
       statusEl.className = "serif estado ok";
       selectedFiles = [];
       render();
