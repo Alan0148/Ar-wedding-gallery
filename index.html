@@ -66,24 +66,18 @@ h2.script{font-size:clamp(38px,10vw,52px);line-height:1.15}
     <div class="tarjeta">
       <h2 id="titulo-subida" class="script">Comparte tu recuerdo</h2>
       <div class="gold-line small"></div>
-      <p class="serif texto">Cada fotografía es una página de una biblioteca que escribimos entre todos, porque nadie recuerda lo mismo. Que tu página de hoy no falte: sube tus fotos al álbum compartido.</p>
+      <p class="serif texto">Elige las fotografías que tomaste hoy desde tu dispositivo. ¡Nos encantará ver cada momento!</p>
       
-      <form id="upload-form">
-        <input type="hidden" name="access_key" value="41e4b4e6-3703-4228-98e1-93e4dd4668db">
-        <input type="hidden" name="subject" value="Nuevas fotografías compartidas para la boda de Alan y Rachel">
-        <input type="hidden" name="from_name" value="Galería de Boda - Alan & Rachel">
-        
-        <div class="botones">
-          <button class="btn" id="elegir" type="button">Elegir fotografías</button>
-        </div>
-        
-        <input id="archivos" type="file" accept="image/*" multiple hidden>
-        
-        <div id="previsualizaciones" class="previsualizaciones"></div>
-        <p id="contador" class="sans contador"></p>
-        
-        <button id="subir" class="btn lleno" style="width:100%;margin-top:15px;" type="submit" hidden>Enviar fotografías a los novios</button>
-      </form>
+      <div class="botones">
+        <button class="btn" id="elegir" type="button">Elegir fotografías</button>
+      </div>
+      
+      <input id="archivos" type="file" accept="image/*" multiple hidden>
+      
+      <div id="previsualizaciones" class="previsualizaciones"></div>
+      <p id="contador" class="sans contador"></p>
+      
+      <button id="subir" class="btn lleno" style="width:100%;margin-top:15px;" type="button" hidden>Enviar fotografías a los novios</button>
 
       <p id="estado" class="serif estado" role="status"></p>
       <p class="sans ayuda">Máximo 10 fotografías por envío.</p>
@@ -99,11 +93,15 @@ h2.script{font-size:clamp(38px,10vw,52px);line-height:1.15}
 <script>
 (() => {
   "use strict";
+
+  // Reemplaza el enlace de abajo por la URL que te dio Google Apps Script (la que termina en /exec)
+  const SCRIPT_URL = "PEGA_AQUI_TU_URL_DE_GOOGLE_APPS_SCRIPT";
+
   const $ = (id) => document.getElementById(id);
   let selectedFiles = [];
 
   const pickBtn = $("elegir"), fileInput = $("archivos"), prev = $("previsualizaciones");
-  const count = $("contador"), sendBtn = $("subir"), statusEl = $("estado"), form = $("upload-form");
+  const count = $("contador"), sendBtn = $("subir"), statusEl = $("estado");
 
   pickBtn.addEventListener("click", () => fileInput.click());
 
@@ -134,44 +132,25 @@ h2.script{font-size:clamp(38px,10vw,52px);line-height:1.15}
     sendBtn.hidden = !selectedFiles.length;
   }
 
-  // Función para comprimir imágenes antes del envío
-  function compressImage(file, maxWidth = 1600, quality = 0.8) {
-    return new Promise((resolve) => {
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new Image();
-        img.src = event.target.result;
-        img.onload = () => {
-          let width = img.width;
-          let height = img.height;
-
-          if (width > maxWidth) {
-            height = Math.round((height * maxWidth) / width);
-            width = maxWidth;
-          }
-
-          const canvas = document.createElement("canvas");
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, width, height);
-
-          canvas.toBlob((blob) => {
-            const compressedFile = new File([blob], file.name || "foto.jpg", {
-              type: "image/jpeg",
-              lastModified: Date.now()
-            });
-            resolve(compressedFile);
-          }, "image/jpeg", quality);
-        };
+      reader.onload = () => {
+        const base64String = reader.result.split(',')[1];
+        resolve(base64String);
       };
+      reader.onerror = error => reject(error);
     });
   }
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  sendBtn.addEventListener("click", async () => {
     if (!selectedFiles.length) return;
+    if (SCRIPT_URL.includes("PEGA_AQUI_TU_URL_DE_GOOGLE_APPS_SCRIPT")) {
+      statusEl.textContent = "Por favor, configura la URL de tu Google Apps Script en la línea 104.";
+      statusEl.className = "serif estado error";
+      return;
+    }
 
     sendBtn.disabled = true;
     pickBtn.disabled = true;
@@ -180,22 +159,25 @@ h2.script{font-size:clamp(38px,10vw,52px);line-height:1.15}
     let successCount = 0;
 
     for (let i = 0; i < selectedFiles.length; i++) {
-      statusEl.textContent = `Optimizando y enviando foto ${i + 1} de ${selectedFiles.length}...`;
+      statusEl.textContent = `Subiendo fotografía ${i + 1} de ${selectedFiles.length}...`;
       
       try {
-        const compressed = await compressImage(selectedFiles[i]);
-        const formData = new FormData();
-        formData.append("access_key", "41e4b4e6-3703-4228-98e1-93e4dd4668db");
-        formData.append("subject", "Fotografía recibida - Boda Alan y Rachel");
-        formData.append("attachment", compressed);
+        const file = selectedFiles[i];
+        const base64 = await fileToBase64(file);
+        
+        const payload = {
+          base64: base64,
+          fileName: `Boda_AR_${Date.now()}_${file.name}`,
+          mimeType: file.type || "image/jpeg"
+        };
 
-        const response = await fetch("https://api.web3forms.com/submit", {
+        const response = await fetch(SCRIPT_URL, {
           method: "POST",
-          body: formData
+          body: JSON.stringify(payload)
         });
-        const data = await response.json();
-
-        if (data.success) {
+        
+        const resData = await response.json();
+        if (resData.status === "success") {
           successCount++;
         }
       } catch (err) {
@@ -204,12 +186,12 @@ h2.script{font-size:clamp(38px,10vw,52px);line-height:1.15}
     }
 
     if (successCount > 0) {
-      statusEl.textContent = `¡Muchas gracias! Se han enviado ${successCount} fotografía(s) con éxito.`;
+      statusEl.textContent = `¡Muchas gracias! Se han subido ${successCount} fotografía(s) a nuestra carpeta.`;
       statusEl.className = "serif estado ok";
       selectedFiles = [];
       render();
     } else {
-      statusEl.textContent = "No se pudieron enviar las fotos. Revisa tu conexión e inténtalo de nuevo.";
+      statusEl.textContent = "No se pudieron subir las fotos. Revisa tu conexión e inténtalo de nuevo.";
       statusEl.className = "serif estado error";
     }
 
