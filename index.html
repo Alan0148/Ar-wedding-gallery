@@ -66,7 +66,7 @@ h2.script{font-size:clamp(38px,10vw,52px);line-height:1.15}
     <div class="tarjeta">
       <h2 id="titulo-subida" class="script">Comparte tu recuerdo</h2>
       <div class="gold-line small"></div>
-      <p class="serif texto">Cada fotografía es una página de una biblioteca que escribimos entre todos, porque nadie recuerda lo mismo. Que tu página de hoy no falte: sube tus fotos al álbum compartido.</p>
+      <p class="serif texto">Elige las fotografías que tomaste hoy desde tu dispositivo. ¡Nos encantará ver cada momento!</p>
       
       <div class="botones">
         <button class="btn" id="elegir" type="button">Elegir fotografías</button>
@@ -94,7 +94,7 @@ h2.script{font-size:clamp(38px,10vw,52px);line-height:1.15}
 (() => {
   "use strict";
 
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzu9DMEdsVETk7GBDmkcuF5R7H4AFIJ4bzx0R6K3hdRZ5gIAaaPVF9pabOKp3NO3-wJ/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1fS9VUA2SVVUCW1VQv9UP3-2NaxTfT1A6mI0j8EXuebAKzqnpLGW_-4hdoHvxbZ9_/exec";
 
   const $ = (id) => document.getElementById(id);
   let selectedFiles = [];
@@ -201,7 +201,7 @@ h2.script{font-size:clamp(38px,10vw,52px);line-height:1.15}
     }
 
     if (successCount > 0) {
-      statusEl.textContent = `¡Muchas gracias! Se han enviado ${successCount} fotografía(s). Revisa tu carpeta en Google Drive.`;
+      statusEl.textContent = `¡Muchas gracias! Se han enviado ${successCount} fotografía(s) a nuestra carpeta.`;
       statusEl.className = "serif estado ok";
       selectedFiles = [];
       render();
